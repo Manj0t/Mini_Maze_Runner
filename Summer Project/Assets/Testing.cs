@@ -13,18 +13,7 @@ public class Testing : MonoBehaviour
     GameObject[] enemies;
     void Start()
     {
-        enemies = GameObject.FindGameObjectsWithTag("Slime");
-        foreach(GameObject enemy in enemies){
-            Vector3 pos = enemy.transform.position;
-            grid = new Grid<int>(10, 10, CELLSIZE, pos - new Vector3(5 * CELLSIZE, 5 * CELLSIZE));
-        }
-    }
 
-    // Update is called once per frame
-    private void Update()
-    {
-        
-        // enemy = GameObject.FindGameObjectWithTag("Player").transform.position;
-        // grid = new Grid<int>(10, 10, CELLSIZE, enemy);
+        PathFinding pathFinding = new PathFinding(10, 10);
     }
 }
