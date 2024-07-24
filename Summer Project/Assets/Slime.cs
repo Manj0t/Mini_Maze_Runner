@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Enemy : MonoBehaviour {
     public float Health {
@@ -16,6 +18,7 @@ public class Enemy : MonoBehaviour {
     const float DEFAULT_RADIUS = 1f;
     public float searchRadius = DEFAULT_RADIUS;
     public ContactFilter2D contactFilter;
+    public LayerMask collisionLayer;
     // Private Fields
     float health = 5;
     Rigidbody2D rb;
@@ -23,17 +26,36 @@ public class Enemy : MonoBehaviour {
     float collisionOffset = 0.02f;
     int directionCoolDown;
     Vector2 wanderDirection;
-    PathFinding path;
+    PathFinding findPath;
     GameObject player;
+    List<PathNode> path;
+    float distance;
     private Vector3 lastPlayerPosition;
+    public Tilemap tilemap;
+
 
     private void Start() {
         rb = GetComponent<Rigidbody2D>();
-        directionCoolDown = Random.Range(1, 500);
-        wanderDirection = new Vector2(Random.Range(1f, 2f), Random.Range(1f, 2f));
+        // directionCoolDown = Random.Range(1, 500);
+        // wanderDirection = new Vector2(Random.Range(1f, 2f), Random.Range(1f, 2f));
         player = GameObject.FindGameObjectWithTag("Player");
         lastPlayerPosition = player.transform.position;
+        findPath = new PathFinding(20, 20, tilemap);
         UpdatePathToPlayer();
+        findPath = new PathFinding(20, 20, tilemap);
+            int startX = (int)(transform.position.x / 0.16f);
+            int startY = (int)(transform.position.y / 0.16f);
+            int endX = (int)(player.transform.position.x / 0.16f);
+            int endY = (int)(player.transform.position.y / 0.16f);
+        // path = new List<PathNode>();
+            path = findPath.FindPath(startX, startY, endX, endY);
+    }
+
+    private void Update(){
+        distance = Vector3.Distance(transform.position, player.transform.position);
+        if (searchRadius >= distance) {
+            // Your logic for when the player is within search radius
+        }
     }
 
     private void FixedUpdate() {
@@ -41,54 +63,55 @@ public class Enemy : MonoBehaviour {
     }
 
     private void LookForPlayer() {
-        float distance = Vector3.Distance(transform.position, player.transform.position);
-
+        distance = Vector3.Distance(transform.position, player.transform.position);
         if (searchRadius >= distance) {
+        //     findPath = new PathFinding(20, 20, tilemap);
+        //     int startX = (int)(transform.position.x / 0.16f);
+        //     int startY = (int)(transform.position.y / 0.16f);
+        //     int endX = (int)(player.transform.position.x / 0.16f);
+        //     int endY = (int)(player.transform.position.y / 0.16f);
+        // // path = new List<PathNode>();
+        // path = findPath.FindPath(startX, startY, endX, endY);
+            Debug.Log(path.Count);
             searchRadius = 2f;
-
-            if (lastPlayerPosition != player.transform.position) {
-                lastPlayerPosition = player.transform.position;
-                UpdatePathToPlayer();
-            }
-
-            if (currentNode != null) {
-                Vector2 direction = (currentNode.position - transform.position).normalized;
-                rb.MovePosition(rb.position + direction * moveSpeed * Time.fixedDeltaTime);
-
-                if (Vector2.Distance(transform.position, currentNode.position) < 0.1f && currentNode.parent != null) {
-                    currentNode = currentNode.parent;
+            // Debug.Log(path.Count);
+            if(path.Count > 0){
+                PathNode currentNode = path[0];
+                path.RemoveAt(0);
+                if(currentNode == null){
+                    currentNode = path[0];
+                    path.RemoveAt(0);
                 }
+                Vector3 nodePosition = new Vector3(currentNode.x * 0.16f, currentNode.y * 0.16f);
+                Vector2 direction = (nodePosition - transform.position).normalized;
+                TryMove(direction);
+            }else{
+                findPath = new PathFinding(20, 20, tilemap);
+                int startX = (int)(transform.position.x / 0.16f);
+                int startY = (int)(transform.position.y / 0.16f);
+                int endX = (int)(player.transform.position.x / 0.16f);
+                int endY = (int)(player.transform.position.y / 0.16f);
+            // path = new List<PathNode>();
+                path = findPath.FindPath(startX, startY, endX, endY);
             }
+            // rb.MovePosition(rb.position + direction * moveSpeed * Time.fixedDeltaTime);
         } else {
             searchRadius = DEFAULT_RADIUS;
         }
     }
 
     private void UpdatePathToPlayer() {
-
-    }
-
-    private void Wander() {
-        if (directionCoolDown <= 0) {
-            wanderDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
-            directionCoolDown = Random.Range(1, 5);
-        }
-        rb.MovePosition(rb.position + wanderDirection * moveSpeed * Time.fixedDeltaTime);
+        // Your logic to update the path to the player
     }
 
     private bool TryMove(Vector2 direction) {
         Vector2 newPosition = rb.position + direction * moveSpeed * Time.fixedDeltaTime;
-        RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, direction.magnitude * moveSpeed * Time.fixedDeltaTime);
-        if (hit.collider == null) {
+        RaycastHit2D hit = Physics2D.Raycast(rb.position, direction, direction.magnitude * moveSpeed * Time.fixedDeltaTime, collisionLayer);
+        if (hit.collider == null)
+        {
             rb.MovePosition(newPosition);
             return true;
         }
         return false;
-    }
-
-    private void ChangeDirection() {
-        float randomAngle = Random.Range(0f, 360f);
-        wanderDirection = new Vector2(Mathf.Cos(randomAngle * Mathf.Deg2Rad), Mathf.Sin(randomAngle * Mathf.Deg2Rad));
-        directionCoolDown = Random.Range(1, 500);
     }
 }

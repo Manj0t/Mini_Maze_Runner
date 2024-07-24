@@ -177,6 +177,9 @@ MonoBehaviour:
     maxDepth: 0
     minNormalAngle: 0
     maxNormalAngle: 0
+  collisionLayer:
+    serializedVersion: 2
+    m_Bits: 1048576
 --- !u!95 &994100205863110859
 Animator:
   serializedVersion: 5

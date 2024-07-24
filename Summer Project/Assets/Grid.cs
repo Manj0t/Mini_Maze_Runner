@@ -19,6 +19,7 @@ public class Grid<TGridObject>{
     private TGridObject[,] gridArray;
     private TextMesh[,] debugTextArry;
     private Vector3 originPosition;
+    
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition, Func<Grid<TGridObject>, int, int, TGridObject> createGridObject){
         this.width = width;
@@ -36,7 +37,7 @@ public class Grid<TGridObject>{
 
         debugTextArry = new TextMesh[width, height];
         //Debug.DrawLine draws the grid lines\
-        bool showDebug = true;
+        bool showDebug = false;
 
         if(showDebug){        
             for(int x = 0; x < gridArray.GetLength(0); x++){
@@ -75,7 +76,7 @@ public class Grid<TGridObject>{
         }
         return neighbors;
     }
-    private Vector3 GetWorldPosition(int x, int y){
+    public Vector3 GetWorldPosition(int x, int y){
         return new Vector3(x, y) * cellSize + originPosition;
     }
     private void GetXY(Vector3 worldPosition, out int x, out int y){
