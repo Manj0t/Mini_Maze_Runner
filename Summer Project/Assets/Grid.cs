@@ -37,7 +37,7 @@ public class Grid<TGridObject>{
 
         debugTextArry = new TextMesh[width, height];
         //Debug.DrawLine draws the grid lines\
-        bool showDebug = false;
+        bool showDebug = true;
 
         if(showDebug){        
             for(int x = 0; x < gridArray.GetLength(0); x++){

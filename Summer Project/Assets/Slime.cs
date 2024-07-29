@@ -51,9 +51,11 @@ public class Enemy : MonoBehaviour {
 
     private void LookForPlayer() {
         distance = Vector3.Distance(transform.position, player.transform.position);
-        if (true) {
+        g++;
+        if (g == 100) {
+            
             searchRadius = 2f;
-            if (path == null || path.Count <= 0) {
+            if (path == null || path.Count <= 0 || Math.Abs(lastPlayerPosition.x - player.transform.position.x) > 1 || Math.Abs(lastPlayerPosition.y - player.transform.position.y) > 1) {
                 Debug.Log("Get Path");
                 findPath = new PathFinding(60, 60, tilemap);
                 int startX = (int)(transform.position.x / 0.16f);
@@ -61,6 +63,7 @@ public class Enemy : MonoBehaviour {
                 int endX = (int)(player.transform.position.x / 0.16f);
                 int endY = (int)(player.transform.position.y / 0.16f);
                 path = findPath.FindPath(startX, startY, endX, endY);
+                lastPlayerPosition = player.transform.position;
                 if (path != null && path.Count > 0) {
                     targetPosition = new Vector2(path[0].x * 0.16f, path[0].y * 0.16f) + cellOffset;
                 }

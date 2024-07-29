@@ -1,34 +1,38 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
 
-class PriorityQueueComparer : IComparer<PathNode> {
+
+class PathNodeComparer : IComparer<PathNode> {
     public int Compare(PathNode a, PathNode b) {
-        if(a.f > b.f) return 1;
-        else if(a.f < b.f) return -1;
-        else return 0;
+        if (a.F != b.F) {
+            return a.F.CompareTo(b.F);
+        }
+        return a.H.CompareTo(b.H);
     }
 }
 
 
 public class PriorityQueue {
-    // Start is called before the first frame update
-    SortedSet<PathNode> queue;
+    List<PathNode> queue;
 
     public PriorityQueue(){
-        queue = new SortedSet<PathNode>(new PriorityQueueComparer());
+        queue = new List<PathNode>();
     }
     public bool Contains(PathNode node){
         return queue.Contains(node);
     }
     public void Enqueue(PathNode node){
-        queue.Add(node);
+
+        int index = queue.BinarySearch(node, new PathNodeComparer());
+        if (index < 0) {
+            index = ~index;
+        }
+        queue.Insert(index, node);
+
     }
     public PathNode Dequeue(){
         if(isEmpty()) return null;
-        PathNode front = queue.Min;
-        queue.Remove(front);
+        PathNode front = queue[0];
+        queue.RemoveAt(0);
         return front;
     }
     public bool isEmpty(){

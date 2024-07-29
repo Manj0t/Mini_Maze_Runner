@@ -1,18 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using Unity.VisualScripting;
-using UnityEngine;
+using UnityEngine.U2D.IK;
 
 public class PathNode{
     private Grid<PathNode> grid;
     public int x;
     public int y;
 
-    public int g, h, f;
+    public int G{get; private set;}
+    public int H{get; private set;}
+    public int F{get; private set;}
     public bool isWalkable;
 
-    public PathNode parent;
+    public PathNode Parent {get; private set;}
     public PathNode(Grid<PathNode> grid, int x, int y){
         this.grid = grid;
         this.x = x;
@@ -22,17 +20,11 @@ public class PathNode{
         this.grid = copy.grid;
         this.x = copy.x;
         this.y = copy.y;
-        g = copy.g;
-        h = copy.h;
-        f = copy.f;
+        G = copy.G;
+        H = copy.H;
     }
-
-    public void CalculateFCost(){
-        f = g + h;
-    }
-
-    public override string ToString()
-    {
-        return x + "," + y;
-    }
+    public void setParent(PathNode n) => Parent = n;
+    public void CalculateFCost() => F = G + H;
+    public void setH(int h) => H = h;
+    public void setG(int g) => G = g;
 }
