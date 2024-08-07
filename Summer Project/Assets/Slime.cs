@@ -1,15 +1,19 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class Enemy : MonoBehaviour {
+    Animator animator;
     public float Health {
         set {
             health = value;
-            if (health <= 0) {
-                Destroy(gameObject);
-            }
+            if (health <= 0) 
+                Defeated();
+            else
+                TakeDamage();
+            
         }
         get {
             return health;
@@ -23,7 +27,7 @@ public class Enemy : MonoBehaviour {
     float health = 5;
     Rigidbody2D rb;
     float moveDistance = 0.16f;
-    float moveSpeed = 2f;
+    float moveSpeed = 3f;
     float collisionOffset = 0.02f;
     int directionCoolDown;
     Vector2 wanderDirection;
@@ -36,6 +40,9 @@ public class Enemy : MonoBehaviour {
     int i = 0;
     int g = 0;
     private Vector2 targetPosition;
+    bool canMove = true;
+    public float knockbackForce = 0.05f;
+    public float knockbackDuration = 0.2f;
     Vector2 cellOffset = new Vector2(0.16f / 2, 0.16f / 2);
 
 
@@ -43,21 +50,47 @@ public class Enemy : MonoBehaviour {
         rb = GetComponent<Rigidbody2D>();
         player = GameObject.FindGameObjectWithTag("Player");
         lastPlayerPosition = player.transform.position;
+        animator = GetComponent<Animator>();
     }
 
     private void Update() {
         LookForPlayer();
     }
-
+    public void TakeDamage(){
+        animator.SetTrigger("TakeDamage");
+        canMove = false;
+        Vector2 playerPosition = player.transform.position;
+        Vector2 direction = (rb.position - playerPosition).normalized;
+        direction.y = 0;
+        direction.Normalize();
+        Debug.Log(knockbackForce);
+        StartCoroutine(ApplyKnockback(direction));
+        
+    }
+    private IEnumerator ApplyKnockback(Vector2 direction) {
+        float timer = 0;
+        while (timer < knockbackDuration) {
+            rb.velocity = direction * knockbackForce;
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        rb.velocity = Vector2.zero;
+        allowMovement();
+    }
+    public void allowMovement() {
+        canMove = true;
+    }
+     
+    public void Defeated() => animator.SetTrigger("Defeated");
+    public void RemoveEnemy() => Destroy(gameObject);
     private void LookForPlayer() {
         distance = Vector3.Distance(transform.position, player.transform.position);
         g++;
-        if (g == 100) {
-            
+        if (canMove) {
             searchRadius = 2f;
-            if (path == null || path.Count <= 0 || Math.Abs(lastPlayerPosition.x - player.transform.position.x) > 1 || Math.Abs(lastPlayerPosition.y - player.transform.position.y) > 1) {
+            if (path == null || path.Count <= 0 || Math.Abs(lastPlayerPosition.x - player.transform.position.x) > 0.5f || Math.Abs(lastPlayerPosition.y - player.transform.position.y) > 0.5f) {
                 Debug.Log("Get Path");
-                findPath = new PathFinding(60, 60, tilemap);
+                findPath = new PathFinding(100, 100, tilemap);
                 int startX = (int)(transform.position.x / 0.16f);
                 int startY = (int)(transform.position.y / 0.16f);
                 int endX = (int)(player.transform.position.x / 0.16f);
@@ -70,8 +103,6 @@ public class Enemy : MonoBehaviour {
             } else {
                 MoveTowardsTarget();
             }
-        } else {
-            searchRadius = DEFAULT_RADIUS;
         }
     }
 
@@ -104,11 +135,10 @@ public class Enemy : MonoBehaviour {
 
     private bool TryMove(Vector2 newPosition) {
         // Vector2 newPosition = rb.position + direction * moveSpeed * Time.fixedDeltaTime;
-        RaycastHit2D hit = Physics2D.Raycast(rb.position, newPosition, newPosition.magnitude * moveSpeed * Time.fixedDeltaTime, collisionLayer);
-        if (hit.collider == null) {
+        // RaycastHit2D hit = Physics2D.Raycast(rb.position, newPosition, newPosition.magnitude * moveSpeed * Time.fixedDeltaTime, collisionLayer);
+
             rb.MovePosition(newPosition);
             return true;
-        }
         return false;
     }
 }

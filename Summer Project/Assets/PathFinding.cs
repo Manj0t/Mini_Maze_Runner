@@ -41,7 +41,7 @@ class PathFinding {
 
     public List<PathNode> FindPath(int startX, int startY, int endX, int endY){
         PathNode startNode = grid.GetGridObjectject(startX, startY);
-        PathNode endNode = grid.GetGridObjectject(endX, endY);
+        PathNode endNode = grid.GetGridObjectject(endX, endY - 1);
 
         if (startNode == null || endNode == null) {
             Debug.LogError($"Start or End node is null (start: {startX},{startY}, end: {endX},{endY})");
@@ -49,7 +49,10 @@ class PathFinding {
         }
 
         if (!endNode.isWalkable) {
-            endNode = grid.GetGridObjectject(endX, endY - 1);
+            endNode = grid.GetGridObjectject(endX - 1, endY - 1);
+            if (!endNode.isWalkable) {
+                endNode = grid.GetGridObjectject(endX - 1, endY - 2);
+            }
             if (endNode == null) {
                 Debug.LogError("No walkable end node found.");
                 return null;
